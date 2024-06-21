@@ -53,21 +53,24 @@
           e.preventDefault()
           const input = document.querySelector('.input')
           const text = input.value
-          ws.send(myId + ':' + text)
+          ws.send(JSON.stringify({ id: myId, text: text })) // JSON形式で送信
           input.value = ''
           input.focus()
         }
 
         ws.onmessage = function (msg) {
-          const response = msg.data
-          const { id, text } = JSON.parse(msg.data)
           const messageList = document.querySelector('.messages')
           const li = document.createElement('li')
-          li.textContent = response
-          if (id === myId) {
-            li.textContent = `(${id})自分:` + text
-          } else {
-           li.textContent = id + ': ' + text
+          try {
+            const { id, text } = JSON.parse(msg.data) // 受信したメッセージを解析
+            if (id === myId) {
+              li.textContent = `(${id})自分: ${text}`
+            } else {
+              li.textContent = `${id}: ${text}`
+            }
+          } catch (e) {
+            console.error('Error parsing message:', e)
+            li.textContent = `受信したメッセージ: ${msg.data}`
           }
           messageList.appendChild(li)
         }
@@ -81,3 +84,4 @@
     </script>
   </body>
 </html>
+
